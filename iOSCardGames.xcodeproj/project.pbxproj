@@ -16,6 +16,11 @@
 		42952130246537EF001DCEB7 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4295212E246537EF001DCEB7 /* LaunchScreen.storyboard */; };
 		4295213B246537EF001DCEB7 /* iOSCardGamesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4295213A246537EF001DCEB7 /* iOSCardGamesTests.swift */; };
 		42952146246537EF001DCEB7 /* iOSCardGamesUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42952145246537EF001DCEB7 /* iOSCardGamesUITests.swift */; };
+		4295215524653845001DCEB7 /* Deck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4295215424653845001DCEB7 /* Deck.swift */; };
+		4295215724653850001DCEB7 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4295215624653850001DCEB7 /* Card.swift */; };
+		4295215B24653DB1001DCEB7 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4295215A24653DB1001DCEB7 /* Logger.swift */; };
+		4295215D246547A2001DCEB7 /* GameRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4295215C246547A2001DCEB7 /* GameRule.swift */; };
+		4295215F24654857001DCEB7 /* BridgeGameRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4295215E24654857001DCEB7 /* BridgeGameRule.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +56,11 @@
 		42952141246537EF001DCEB7 /* iOSCardGamesUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iOSCardGamesUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		42952145246537EF001DCEB7 /* iOSCardGamesUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSCardGamesUITests.swift; sourceTree = "<group>"; };
 		42952147246537EF001DCEB7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		4295215424653845001DCEB7 /* Deck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deck.swift; sourceTree = "<group>"; };
+		4295215624653850001DCEB7 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
+		4295215A24653DB1001DCEB7 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		4295215C246547A2001DCEB7 /* GameRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameRule.swift; sourceTree = "<group>"; };
+		4295215E24654857001DCEB7 /* BridgeGameRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeGameRule.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +111,8 @@
 		4295211F246537ED001DCEB7 /* iOSCardGames */ = {
 			isa = PBXGroup;
 			children = (
+				4295215824653BB5001DCEB7 /* ContractBridge */,
+				429521532465382B001DCEB7 /* Cards */,
 				42952120246537ED001DCEB7 /* AppDelegate.swift */,
 				42952122246537ED001DCEB7 /* SceneDelegate.swift */,
 				42952124246537ED001DCEB7 /* ViewController.swift */,
@@ -109,6 +121,7 @@
 				4295212E246537EF001DCEB7 /* LaunchScreen.storyboard */,
 				42952131246537EF001DCEB7 /* Info.plist */,
 				42952129246537ED001DCEB7 /* iOSCardGames.xcdatamodeld */,
+				4295215A24653DB1001DCEB7 /* Logger.swift */,
 			);
 			path = iOSCardGames;
 			sourceTree = "<group>";
@@ -129,6 +142,24 @@
 				42952147246537EF001DCEB7 /* Info.plist */,
 			);
 			path = iOSCardGamesUITests;
+			sourceTree = "<group>";
+		};
+		429521532465382B001DCEB7 /* Cards */ = {
+			isa = PBXGroup;
+			children = (
+				4295215424653845001DCEB7 /* Deck.swift */,
+				4295215624653850001DCEB7 /* Card.swift */,
+				4295215C246547A2001DCEB7 /* GameRule.swift */,
+			);
+			path = Cards;
+			sourceTree = "<group>";
+		};
+		4295215824653BB5001DCEB7 /* ContractBridge */ = {
+			isa = PBXGroup;
+			children = (
+				4295215E24654857001DCEB7 /* BridgeGameRule.swift */,
+			);
+			path = ContractBridge;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -263,8 +294,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				42952125246537ED001DCEB7 /* ViewController.swift in Sources */,
+				4295215724653850001DCEB7 /* Card.swift in Sources */,
 				42952121246537ED001DCEB7 /* AppDelegate.swift in Sources */,
+				4295215524653845001DCEB7 /* Deck.swift in Sources */,
+				4295215D246547A2001DCEB7 /* GameRule.swift in Sources */,
+				4295215B24653DB1001DCEB7 /* Logger.swift in Sources */,
 				42952123246537ED001DCEB7 /* SceneDelegate.swift in Sources */,
+				4295215F24654857001DCEB7 /* BridgeGameRule.swift in Sources */,
 				4295212B246537ED001DCEB7 /* iOSCardGames.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

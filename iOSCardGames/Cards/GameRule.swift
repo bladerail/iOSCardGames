@@ -13,4 +13,6 @@ protocol GameRule {
     var suitOrder: [String] { get set }
     
     func computeCardStrength(_ number: Int, _ suit: Int) -> Int
+    
+    func messageReceivedHandler(_ notification: Notification)
 }

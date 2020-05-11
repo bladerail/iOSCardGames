@@ -21,6 +21,7 @@ class Card {
         self.strength = rule.computeCardStrength(number, suit)
     }
     
+    // Returns true if card1 is weaker than card2
     public static func compare(_ card1: Card?, _ card2: Card?) -> Bool {
         let card1Strength = card1?.strength ?? -999
         let card2Strength = card2?.strength ?? -999

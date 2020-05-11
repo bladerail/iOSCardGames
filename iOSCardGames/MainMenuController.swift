@@ -26,15 +26,31 @@ class MainMenuController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tblLogs.dequeueReusableCell(withIdentifier: "tblLogsCell", for: indexPath) as! LogTableViewCell
-        print("CellFrame \(cell.contentView.frame.size)")
+        
         let text = Logger.logs[indexPath.row]
         
         cell.logLabel.text = text
-        print("NewCellFrame \(cell.contentView.frame.size)")
+
         return cell
     }
     
     
+    override func viewWillAppear(_ animated: Bool) {
+        registerObservers()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        print("ViewWilDisappear")
+        
+    }
+    
+    func registerObservers() {
+        notificationCenter.addObserver(self, selector: #selector(logsRefreshedHandler), name: .refreshLogs, object: nil)
+    }
+    
+    func unregisterObservers() {
+        notificationCenter.removeObserver(self, name: .refreshLogs, object: nil)
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -45,16 +61,17 @@ class MainMenuController: UIViewController, UITableViewDataSource, UITableViewDe
         tblLogs.rowHeight = UITableView.automaticDimension
         tblLogs.estimatedRowHeight = 40
         
-        notificationCenter.addObserver(self,
-                                       selector: #selector(logsRefreshed),
-                                       name: .refreshLogs,
-                                       object: nil)
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        appDelegate.mainVC = self
+        
+        
         Logger.d("Hello World")
     }
     
-    @objc private func logsRefreshed(_ notification: Notification) {
-        print("Old Frame \(tblLogs.contentSize)")
-        tblLogs.reloadData()
+    @objc private func logsRefreshedHandler(_ notification: Notification) {
+        DispatchQueue.main.async {
+            self.tblLogs.reloadData()
+        }
     }
 
     @IBAction func onCreateLobbyPressed(_ sender: Any) {

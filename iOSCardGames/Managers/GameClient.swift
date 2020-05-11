@@ -7,6 +7,17 @@
 //
 
 import Foundation
-class GameClient {
+import MultipeerConnectivity
+
+class GameClient : GameManager {
+    
+ 
+    func requestSyncStateWithServer() {
+        
+    }
+    
+    func handleSyncStateWithServer() {
+        
+    }
     
 }

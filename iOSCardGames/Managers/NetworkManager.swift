@@ -15,14 +15,26 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
     
     let serviceType = "iOSCardGames"
     
-    let localPeerID = MCPeerID(displayName: UIDevice.current.name)
+    let localPeerID : MCPeerID
     var browserVC : MCBrowserViewController!
     var assistant : MCAdvertiserAssistant!
     //    var advertiser : MCNearbyServiceAdvertiser!
     var session : MCSession!
     
-    override private init() {
-        
+    var serverPeerID : MCPeerID?
+    var playerList : [MCPeerID] = []
+    
+    override init() {
+        if let data = UserDefaults.standard.data(forKey: "peerID"), let id = NSKeyedUnarchiver.unarchiveObject(with: data) as? MCPeerID {
+          self.localPeerID = id
+        } else {
+          let peerID = MCPeerID(displayName: UIDevice.current.name)
+          let data = NSKeyedArchiver.archivedData(withRootObject: peerID)
+          UserDefaults.standard.set(data, forKey: "peerID")
+          self.localPeerID = peerID
+        }
+        serverPeerID = nil
+        super.init()
         session = MCSession(peer: localPeerID, securityIdentity: nil, encryptionPreference: .none)
         
         
@@ -38,21 +50,22 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
         //        advertiser.startAdvertisingPeer()
         assistant = MCAdvertiserAssistant(serviceType:serviceType, discoveryInfo:nil, session:self.session)
         
-        super.init()
+        
         session.delegate = self
         browserVC.delegate = self
         assistant.delegate = self
         assistant.start()    // tell the assistant to start advertising our service
     }
     
-    
+    // TODO: Allow users to provide their own names
     func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
+        NotificationCenter.default.post(name: .peerConnectionState, object: nil, userInfo: ["peer": peerID, "state": state])
         switch (state) {
         case .connected:
-            Logger.d(peerID.displayName + " has connected");
+            Logger.d(peerID.displayName + " has connected to session \(session)");
             break
         case .connecting:
-            Logger.d(peerID.displayName + " is connecting");
+            Logger.d(peerID.displayName + " is connecting to session \(session)");
             break
         case .notConnected:
             Logger.d(peerID.displayName + " has disconnected");
@@ -63,10 +76,12 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
     }
     
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
-        if let rawData = String(data: data, encoding: .utf8) {
-            Logger.d("Received from \(peerID): \(rawData)")
-        } else {
-            Logger.e("RawData error")
+        do {
+            let message : NCommand = try JSONDecoder().decode(NCommand.self, from: data)
+            Logger.d("Received from \(peerID): \(message)")
+            NotificationCenter.default.post(name: .messageReceived, object: self, userInfo: ["peer": peerID, "msg": message])
+        } catch {
+            Logger.e("ReceiveData \(error)")
         }
     }
     
@@ -82,14 +97,32 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
         
     }
     
+    
     func browserViewControllerDidFinish(_ browserViewController: MCBrowserViewController) {
         browserViewController.dismiss(animated: true, completion: nil)
         Logger.d("BrowserViewController Finished")
+        browserViewController.browser?.stopBrowsingForPeers()
+        assistant.stop()
+        
+        // If BrowserViewControllerDidFinish, then this is the server player
+        serverPeerID = localPeerID
+        playerList.append(localPeerID)
+        playerList = session.connectedPeers
+        // Update all other players' player list, by sending the hash value array to the other devices
+        var hashArray: [Int] = []
+        for player in playerList {
+            hashArray.append(player.hashValue)
+        }
+        Logger.d(NCommand(commandType: .HOST, data: hashArray.description).description)
+        sendMessage(command: .HOST, body: hashArray.description)
+        
     }
     
     func browserViewControllerWasCancelled(_ browserViewController: MCBrowserViewController) {
         browserViewController.dismiss(animated: true, completion: nil)
         Logger.d("BrowserViewController Cancelled")
+        browserViewController.browser?.stopBrowsingForPeers()
+        assistant.stop()
     }
     
     func advertiserAssistantWillPresentInvitation(_ advertiserAssistant: MCAdvertiserAssistant) {
@@ -97,7 +130,72 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
     }
     
     func advertiserAssistantDidDismissInvitation(_ advertiserAssistant: MCAdvertiserAssistant) {
-        Logger.d("Invation was dismissed")
+        Logger.d("Invitation was dismissed")
     }
     
+    func start() {
+        assistant.start()
+        browserVC.browser?.startBrowsingForPeers()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(enteredBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
+    }
+    
+    func syncPlayerListWithServer(_ serverList: [MCPeerID]) {
+        self.playerList = serverList
+    }
+    
+    // Disconnect from session when app enters background
+    @objc func enteredBackground() {
+        self.session.disconnect()
+        self.serverPeerID = nil
+        self.playerList = []
+    }
+    
+    func reconnect() {
+        
+    }
+    
+    // Send update packet
+    func sendMessage(command: NCommand.Command, body: String) {
+        sendMessage(packet: NCommand(command: command, data: body))
+    }
+    
+    func sendMessage(packet: NCommand) {
+        do {
+            let payload = try JSONEncoder().encode(packet)
+            try self.session.send(payload, toPeers: session.connectedPeers, with: .reliable)
+        } catch {
+            Logger.e("Send Message: \(error)")
+        }
+    }
+    
+    // Send full state data
+    func requestStateRefresh() {
+        
+    }
+    
+}
+
+extension Notification.Name {
+    static var peerConnectionState : Notification.Name {
+        return .init(rawValue: "NetworkManager.peerConnectionState")
+    }
+    static var messageReceived : Notification.Name {
+        return .init(rawValue: "NetworkManager.receivedMessage")
+    }
+}
+
+struct NCommand : Codable, CustomStringConvertible {
+    enum Command : String, Codable {
+        case HOST
+        case CHAT
+        case SYNC
+    }
+//    let senderHash: Int
+    let command: Command
+    let data : String
+    
+    var description: String {
+        return "\(command): \(data)"
+    }
 }

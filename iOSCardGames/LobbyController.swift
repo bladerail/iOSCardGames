@@ -9,8 +9,7 @@
 import UIKit
 import MultipeerConnectivity
 
-class LobbyController: UIViewController {
-    
+class LobbyController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate {
     
     @IBOutlet weak var lblName: UILabel!
     @IBOutlet weak var lblMsg: UILabel!
@@ -21,16 +20,291 @@ class LobbyController: UIViewController {
     @IBOutlet weak var btnSend: UIButton!
     
     let networkManager = NetworkManager.shared
+    var chatLog:[ChatBubble] = []
+    
+    override func viewWillAppear(_ animated: Bool) {
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(updatePeerConnected), name: .peerConnectionState, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(messageReceivedHandler), name: .messageReceived, object: nil)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: self)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: self)
+        NotificationCenter.default.removeObserver(self, name: .peerConnectionState, object: self)
+        NotificationCenter.default.removeObserver(self, name: .messageReceived, object: self)
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         Logger.d("Hello World from Lobby")
+        self.txtFldMsg.delegate = self
+        
+        self.tblChat.delegate = self    // need to implement UITableViewDelegate
+        self.tblChat.dataSource = self  // need to implement UITableViewDataSource
+        self.tblChat.register(UITableViewCell.self, forCellReuseIdentifier: "cellReuseIdentifier")
+        self.tblChat.allowsSelection = false;
+        self.tblChat.separatorStyle = UITableViewCell.SeparatorStyle.none
     }
     
     
     @IBAction func onInvitePressed(_ sender: Any) {
+        networkManager.start()
         self.present(networkManager.browserVC, animated: true, completion: nil)
+    }
+    
+    // Chat Send button clicked, keep the keyboard in view so no need to resignFirstResponder
+    @IBAction func onSendPressed(_ sender: UIButton) {
+        if txtFldMsg.text?.count == 0 {
+            return
+        }
+
+        networkManager.sendMessage(command: .CHAT, body: txtFldMsg.text!)
+            
+        let chatObj = ChatBubble.init(withMsg: txtFldMsg.text!, by:"Self", on:NSDate())
+        chatLog.append( chatObj )       // append to the array list
+        self.tblChat.reloadData()  // to refresh the UITableView
+            
+        txtFldMsg.text = ""     // clear the textfield so that it's easy to type the next message
+        self.tblChat.scrollToLastCell(animated : true)  // Scroll to the last row of the tableview
+    }
+    
+    // MARK: UITextFieldDelegate
+    // this function is called when the Return key is pressed.
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        
+        if txtFldMsg.text?.count == 0 { // if there is no chat text
+            textField.resignFirstResponder() // to hide the keyboard
+            return true
+        }
+        
+        networkManager.sendMessage(command: .CHAT, body: textField.text!)
+            //let newMsg = "<Self> " + textField.text!   // prefix with the word Self
+
+        let chatObj = ChatBubble.init(withMsg: textField.text!, by:"Self", on:NSDate())
+        chatLog.append( chatObj )       // append to the array list
+        self.tblChat.reloadData()  // to refresh the UITableView
+        
+        textField.text = ""     // clear the textfield so that it's easy to type the next message
+        textField.resignFirstResponder() // to hide the keyboard
+        self.tblChat.scrollToLastCell(animated : true)  // Scroll to the last row of the tableview
+        textField.text = ""     // clear the textfield so that it's easy to type the next message
+        textField.resignFirstResponder() // to hide the keyboard
+        return true
+    }
+    
+    // MARK: UITableViewDelegate
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat
+    {
+        let chatObj = chatLog[indexPath.row]
+        return chatObj.getRowHeight()
+    }
+    
+    // MARK: UITableViewDataSource
+    // The next 3 functions are UITableViewDataSource protocols to display the tableview
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return 1
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return chatLog.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let chatObj = chatLog[indexPath.row]
+        
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cellReuseIdentifier", for: indexPath)
+        
+        for subview in (cell.contentView.subviews) {
+            subview.removeFromSuperview()
+        }
+        let bubbleView = getBubbleView(withChatObj: chatObj)  // construct the view to add to each tableview row or cell
+        cell.contentView.addSubview( bubbleView )
+        
+        chatObj.setRowHeight(bubbleView.frame.size.height+5) // update the cell's height in the chat object, with a gap of 5 pixels
+        return cell
+    }
+    
+    func getBubbleView(withChatObj chatObj:ChatBubble) -> UIView {
+            
+            var img : UIImage
+            let myInsets: UIEdgeInsets
+            var lblX : CGFloat = 0 // x-coord for lblMsg
+            var lblY : CGFloat = 15  // y-coord for lblMsg
+            var viewX : CGFloat // x-coord for final view
+            
+            let screenSize: CGRect = UIScreen.main.bounds
+            let font = UIFont (name: "ArialMT", size: 16)
+            var displayWidth:CGFloat = screenSize.width / 1.5  // set the largest width for each bubble
+            
+            let lblMsg = UILabel(frame: CGRect(x:0, y:10, width:10, height:90)) // initial values will be changed later
+            
+            lblMsg.font = font
+            //lblMsg.font = UIFont.systemFont(ofSize: 16)
+            //lblMsg.backgroundColor = UIColor.red  // turn on during debugging to see actual area occupied
+            lblMsg.numberOfLines = 0 // Making it multiline
+            lblMsg.text = chatObj.getMsg()
+            
+            let lblSenderName = UILabel(frame: CGRect(x:0, y:30, width:10, height:90))
+            lblSenderName.font = font
+            lblSenderName.textColor = UIColor.blue
+            //lblSenderName.backgroundColor = UIColor.yellow  // turn on during debugging to see actual area occupied
+            lblSenderName.numberOfLines = 1 // 1-line name
+            lblSenderName.text = " - "  // will be changed below
+            
+            let msg = chatObj.getMsg()
+            var txtWidth = msg.widthOfString(usingFont: font!)
+            if txtWidth > displayWidth {
+                txtWidth = displayWidth - 20
+            }
+            
+            if chatObj.getSender() == "Self" {  // my message
+                img = UIImage(named: "myBubble.png")!
+                myInsets = UIEdgeInsets.init(top: 8, left: 8, bottom: 18, right: 20)
+                lblX = 10
+                lblY = 10
+                viewX = screenSize.size.width - displayWidth //200
+            }
+            else {  // others
+                img = UIImage(named: "othersBubble2.png")!
+                myInsets = UIEdgeInsets.init(top: 8, left: 20, bottom: 18, right: 8)
+                lblX = 10
+                lblY = 10
+                viewX = 5
+                lblSenderName.text = chatObj.getSender()  // need to modify this accordingly
+            }
+            img = img.resizableImage(withCapInsets: myInsets, resizingMode: .stretch)
+            if txtWidth < img.size.width {
+                txtWidth = img.size.width
+            }
+            var displayHeight:CGFloat = img.size.height
+            let sizeRequired = lblMsg.font.sizeOfString(string: lblMsg.text!, constrainedToWidth: Double(txtWidth))
+            var txtHeight:CGFloat = 0
+            if sizeRequired.height < img.size.height-20 {  // if the message is just a 1-liner
+                txtHeight = sizeRequired.height
+                displayHeight = img.size.height + 0
+            } else {
+                txtHeight = sizeRequired.height
+                displayHeight = sizeRequired.height+20
+            }
+            
+            /*if sizeRequired.width < img.size.width-20 {
+                displayWidth = img.size.width
+            } else {
+                displayWidth = sizeRequired.width + 30
+            }*/
+            displayWidth = sizeRequired.width + 20  // with buffer of 10 on each side
+            
+            // setup the views, logically arrange additional views for new features
+    //        let bubbleImage: UIImageView = UIImageView(image: img)
+            
+            let view = UIView(frame: CGRect(x: 0, y: 0, width:10, height:10))
+            let blue = UIColor(red:0, green:160.0/255, blue:1, alpha:1)
+            let grey = UIColor(red:229.0/255, green:229.0/255, blue:229.0/255, alpha:1)
+            
+            if chatObj.getSender() == "Self" {  // shift the view closer to the right edge, only for my message
+                viewX = screenSize.size.width - displayWidth-5
+                lblMsg.frame = CGRect(x:lblX, y:lblY, width:txtWidth, height:txtHeight)
+                lblMsg.textColor = UIColor.white
+                view.backgroundColor = blue
+                view.addSubview(lblMsg)
+                //print("\(lblX) \(lblY) \(txtWidth) \(txtHeight)")
+            }
+            else {  // other's message
+                let h = lblSenderName.text?.heightOfString(usingFont: font!)
+                let w = lblSenderName.text?.widthOfString(usingFont: font!)
+                if (w! > txtWidth) {
+                    txtWidth = w!
+                    //displayWidth = w! + 30
+                }
+                displayWidth = txtWidth + 20
+                displayHeight += h!  // increase the display height to account for name label
+                lblSenderName.frame = CGRect(x:lblX, y:lblY, width:txtWidth, height:h!)
+                //bubbleImage.addSubview(lblSenderName)  // add name label to UIImageView
+                 
+                lblY += h!
+                lblMsg.frame = CGRect(x:lblX, y:lblY, width:txtWidth, height:txtHeight)
+                lblMsg.textColor = UIColor.black
+                view.backgroundColor = grey
+                view.addSubview(lblSenderName)
+                view.addSubview(lblMsg)
+            }
+            //bubbleImage.frame = CGRect(x:0, y: 0, width:displayWidth, height:displayHeight)
+            //bubbleImage.addSubview(lblMsg)  // add lblMsg to UIImageView
+            
+            //let view = UIView(frame: CGRect(x: viewX, y: 0, width:displayWidth, height:displayHeight))
+            view.frame = CGRect(x: viewX, y: 0, width:displayWidth, height:displayHeight)
+            view.layer.cornerRadius = 8
+            //view.addSubview(bubbleImage)   // add UIImageView to view
+            
+            return view
+        }
+    
+    @objc func keyboardWillShow(sender: NSNotification) {
+        
+    }
+    
+    @objc func keyboardWillHide(sender: NSNotification) {
+        
+    }
+    
+    @objc private func updatePeerConnected(_ notification: Notification) {
+        let obj = notification.userInfo
+        let peerID = obj!["peer"] as! MCPeerID
+        let state = obj!["state"] as! MCSessionState
+        switch state {
+        case .connected:
+            let chatObj = ChatBubble.init(withMsg: peerID.displayName + " has connected", by: networkManager.localPeerID.displayName, on: NSDate())
+            self.chatLog.append(chatObj)
+            break
+        case .connecting:
+            let chatObj = ChatBubble.init(withMsg: peerID.displayName + " is connecting", by: networkManager.localPeerID.displayName, on: NSDate())
+            self.chatLog.append(chatObj)
+            break
+        case .notConnected:
+            let chatObj = ChatBubble.init(withMsg: peerID.displayName + " has disconnected", by: networkManager.localPeerID.displayName, on: NSDate())
+            self.chatLog.append(chatObj)
+            break
+        @unknown default:
+            Logger.e("Error")
+        }
+        
+        DispatchQueue.main.async {
+            self.tblChat.reloadData()
+            self.tblChat.scrollToLastCell(animated : true)
+        }
+    }
+    
+    @objc private func messageReceivedHandler(_ notification: Notification) {
+        let peerID = notification.userInfo!["peer"] as! MCPeerID
+        let message = notification.userInfo!["msg"] as! NCommand
+        switch (message.command) {
+        case .CHAT,
+             .HOST:
+            let chatObj = ChatBubble.init(withMsg: message.data, by: peerID.displayName, on: NSDate())
+            self.chatLog.append(chatObj)
+            DispatchQueue.main.async {
+                self.tblChat.reloadData()
+                self.tblChat.scrollToLastCell(animated : true)
+            }
+            break
+        case .SYNC:
+            break
+        }
+        
+        
+    }
+}
+
+extension UIFont {
+    func sizeOfString (string: String, constrainedToWidth width: Double) -> CGSize {
+        return NSString(string: string).boundingRect(with: CGSize(width: width, height: Double.greatestFiniteMagnitude),
+                                                     options: NSStringDrawingOptions.usesLineFragmentOrigin,
+                                                     attributes: [NSAttributedString.Key.font: self],
+                                                     context: nil).size
     }
 }
 

@@ -7,7 +7,20 @@
 //
 
 import Foundation
+import MultipeerConnectivity
+
 class GameManager {
+    var playerList: [MCPeerID]
+    var playerIndex: Int
+    var currentGameRule: GameRule?
     
+    init(peers: [MCPeerID], playerIndex: Int) {
+        self.playerList = peers
+        self.playerIndex = playerIndex
+        currentGameRule = nil
+    }
     
+    func messageReceivedHandler() {
+        
+    }
 }

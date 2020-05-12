@@ -20,6 +20,7 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
     @IBOutlet weak var btnSend: UIButton!
     
     let networkManager = NetworkManager.shared
+    let gameManager = (UIApplication.shared.delegate as! AppDelegate).gameManager
     var chatLog:[ChatBubble] = []
     
     override func viewWillAppear(_ animated: Bool) {
@@ -27,14 +28,16 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(updatePeerConnected), name: .peerConnectionState, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateHost), name: .declareHost, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(messageReceivedHandler), name: .messageReceived, object: nil)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: self)
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: self)
-        NotificationCenter.default.removeObserver(self, name: .peerConnectionState, object: self)
-        NotificationCenter.default.removeObserver(self, name: .messageReceived, object: self)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil )
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .peerConnectionState, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .declareHost, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .messageReceived, object: nil)
     }
     
     override func viewDidLoad() {
@@ -281,6 +284,7 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
     @objc private func messageReceivedHandler(_ notification: Notification) {
         let peerID = notification.userInfo!["peer"] as! MCPeerID
         let message = notification.userInfo!["msg"] as! NCommand
+        Logger.d("UIHandling \(message.command) \(message.data)")
         switch (message.command) {
         case .CHAT,
              .HOST:
@@ -295,6 +299,22 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
             break
         }
         
+    }
+    
+    @objc func updateHost(_ notification: Notification) {
+        let hashArray = notification.object as! [Int]
+        let chatObj : ChatBubble
+        if (networkManager.isServer) {
+            chatObj = ChatBubble.init(withMsg: hashArray.description, by: "Self", on: NSDate())
+        } else {
+            chatObj  = ChatBubble.init(withMsg: hashArray.description, by: networkManager.serverPeerID!.displayName, on: NSDate())
+        }
+        
+        self.chatLog.append(chatObj)
+        DispatchQueue.main.async {
+            self.tblChat.reloadData()
+            self.tblChat.scrollToLastCell(animated : true)
+        }
         
     }
 }

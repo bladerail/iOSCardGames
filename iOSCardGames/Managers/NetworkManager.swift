@@ -21,8 +21,19 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
     //    var advertiser : MCNearbyServiceAdvertiser!
     var session : MCSession!
     
-    var serverPeerID : MCPeerID?
     var playerList : [MCPeerID] = []
+    
+    var serverPeerID : MCPeerID? {
+        if (playerList.count == 0) {
+            return nil
+        } else {
+            return playerList[0]
+        }
+        
+    }
+    var isServer : Bool {
+        return serverPeerID == localPeerID
+    }
     
     override init() {
         if let data = UserDefaults.standard.data(forKey: "peerID"), let id = NSKeyedUnarchiver.unarchiveObject(with: data) as? MCPeerID {
@@ -33,7 +44,7 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
           UserDefaults.standard.set(data, forKey: "peerID")
           self.localPeerID = peerID
         }
-        serverPeerID = nil
+        self.playerIndex = -1
         super.init()
         session = MCSession(peer: localPeerID, securityIdentity: nil, encryptionPreference: .none)
         
@@ -79,7 +90,23 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
         do {
             let message : NCommand = try JSONDecoder().decode(NCommand.self, from: data)
             Logger.d("Received from \(peerID): \(message)")
-            NotificationCenter.default.post(name: .messageReceived, object: self, userInfo: ["peer": peerID, "msg": message])
+            
+            switch (message.command) {
+            case .HOST:
+                do {
+                    let hashArray = try JSONSerialization.jsonObject(with: message.data.data(using: .utf8)!, options: []) as! [Int]
+                    hostDeclaredHandler(hashArray: hashArray)
+                    NotificationCenter.default.post(name: .declareHost, object: hashArray)
+                } catch {
+                    Logger.e("\(error)")
+                }
+                break
+            case .CHAT:
+                NotificationCenter.default.post(name: .messageReceived, object: self, userInfo: ["peer": peerID, "msg": message])
+                break
+            default:
+                break
+            }
         } catch {
             Logger.e("ReceiveData \(error)")
         }
@@ -105,16 +132,16 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
         assistant.stop()
         
         // If BrowserViewControllerDidFinish, then this is the server player
-        serverPeerID = localPeerID
-        playerList.append(localPeerID)
-        playerList = session.connectedPeers
         // Update all other players' player list, by sending the hash value array to the other devices
         var hashArray: [Int] = []
-        for player in playerList {
-            hashArray.append(player.hashValue)
+        hashArray.append(localPeerID.hashValue)
+        for peer in session.connectedPeers {
+            hashArray.append(peer.hashValue)
         }
-        Logger.d(NCommand(commandType: .HOST, data: hashArray.description).description)
+        Logger.d(NCommand(command: .HOST, data: hashArray.description).description)
         sendMessage(command: .HOST, body: hashArray.description)
+        hostDeclaredHandler(hashArray: hashArray)
+        NotificationCenter.default.post(name: .declareHost, object: hashArray)
         
     }
     
@@ -147,7 +174,6 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
     // Disconnect from session when app enters background
     @objc func enteredBackground() {
         self.session.disconnect()
-        self.serverPeerID = nil
         self.playerList = []
     }
     
@@ -174,11 +200,39 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
         
     }
     
+    // Update playerList and serverPeerID to match that of the host's
+    func hostDeclaredHandler(hashArray: [Int]) {
+        let playerIndex: Int
+        for (idx, hash) in hashArray.enumerated() {
+            for peer in session.connectedPeers {
+                // For each hash value, compare against self or connectedpeers
+                if (peer.hashValue == hash) {
+                    self.playerList.append(peer)
+                } else if (localPeerID.hashValue == hash) {
+                    self.playerList.append(localPeerID)
+                    // Set own player index
+                    playerIndex = idx
+                }
+            }
+        }
+        Logger.d("playerList: \(playerList), playerIndex: \(playerIndex), serverPeerID: \(String(describing: serverPeerID))")
+        
+        // Create GameManager depending on server or client
+        if (self.isServer) {
+            (UIApplication.shared.delegate as! AppDelegate).gameManager = GameServer(peers: playerList, playerIndex: playerIndex)
+        } else {
+            (UIApplication.shared.delegate as! AppDelegate).gameManager = GameClient(peers: playerList, playerIndex: playerIndex)
+        }
+    }
+    
 }
 
 extension Notification.Name {
     static var peerConnectionState : Notification.Name {
         return .init(rawValue: "NetworkManager.peerConnectionState")
+    }
+    static var declareHost: Notification.Name {
+        return .init(rawValue: "NetworkManager.declareHost")
     }
     static var messageReceived : Notification.Name {
         return .init(rawValue: "NetworkManager.receivedMessage")

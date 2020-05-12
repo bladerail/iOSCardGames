@@ -10,11 +10,6 @@ import Foundation
 import MultipeerConnectivity
 
 class GameServer: GameManager {
-    var playerList: [MCPeerID]
-    
-    init() {
-        playerList = []
-    }
     
     func updateFullStateForClients() {
         

@@ -185,9 +185,9 @@
 			children = (
 				4295216124654E36001DCEB7 /* GameServer.swift */,
 				4295216324654E42001DCEB7 /* GameClient.swift */,
+				4217B6A52469F28800B2124C /* GameManager.swift */,
 				4295216824655D83001DCEB7 /* NetworkManager.swift */,
 				4295216A24655DE8001DCEB7 /* NetworkingProtocol.swift */,
-				4217B6A52469F28800B2124C /* GameManager.swift */,
 			);
 			path = Managers;
 			sourceTree = "<group>";

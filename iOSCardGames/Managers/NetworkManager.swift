@@ -44,7 +44,7 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
           UserDefaults.standard.set(data, forKey: "peerID")
           self.localPeerID = peerID
         }
-        self.playerIndex = -1
+//        self.playerIndex = -1
         super.init()
         session = MCSession(peer: localPeerID, securityIdentity: nil, encryptionPreference: .none)
         
@@ -202,7 +202,7 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
     
     // Update playerList and serverPeerID to match that of the host's
     func hostDeclaredHandler(hashArray: [Int]) {
-        let playerIndex: Int
+        var playerIndex: Int = -1
         for (idx, hash) in hashArray.enumerated() {
             for peer in session.connectedPeers {
                 // For each hash value, compare against self or connectedpeers

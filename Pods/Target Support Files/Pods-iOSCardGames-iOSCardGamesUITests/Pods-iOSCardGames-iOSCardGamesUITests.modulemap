@@ -1,0 +1,6 @@
+framework module Pods_iOSCardGames_iOSCardGamesUITests {
+  umbrella header "Pods-iOSCardGames-iOSCardGamesUITests-umbrella.h"
+
+  export *
+  module * { export * }
+}

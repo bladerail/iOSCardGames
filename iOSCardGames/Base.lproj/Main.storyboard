@@ -16,18 +16,8 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="GB3-JL-eB9">
-                                <rect key="frame" x="141.5" y="67" width="92" height="61"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="61" id="rhy-bo-mGa"/>
-                                </constraints>
-                                <state key="normal" title="Create Lobby"/>
-                                <connections>
-                                    <segue destination="faY-5P-HDD" kind="show" id="HZX-Un-ihH"/>
-                                </connections>
-                            </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ifw-TF-9wA">
-                                <rect key="frame" x="150" y="145" width="75" height="30"/>
+                                <rect key="frame" x="41" y="133" width="75" height="30"/>
                                 <state key="normal" title="Join Lobby"/>
                             </button>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="thP-XW-Zdv">
@@ -61,17 +51,36 @@
                                     </tableViewCell>
                                 </prototypes>
                             </tableView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="qUw-0e-NHv">
+                                <rect key="frame" x="239" y="133" width="70" height="30"/>
+                                <state key="normal" title="Send UDP"/>
+                                <connections>
+                                    <action selector="onSendUDPPressed:" destination="BYZ-38-t0r" eventType="touchUpInside" id="ZS2-Sg-g4O"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="GB3-JL-eB9">
+                                <rect key="frame" x="141" y="65" width="92" height="61"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="61" id="rhy-bo-mGa"/>
+                                </constraints>
+                                <state key="normal" title="Create Lobby"/>
+                                <connections>
+                                    <segue destination="faY-5P-HDD" kind="show" id="HZX-Un-ihH"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                         <constraints>
-                            <constraint firstItem="GB3-JL-eB9" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="23" id="4Z6-6y-wny"/>
+                            <constraint firstItem="GB3-JL-eB9" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="21" id="4Z6-6y-wny"/>
                             <constraint firstItem="thP-XW-Zdv" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="8Hu-bU-Rtk"/>
-                            <constraint firstItem="Ifw-TF-9wA" firstAttribute="centerX" secondItem="thP-XW-Zdv" secondAttribute="centerX" id="ZK8-3b-u1L"/>
+                            <constraint firstItem="qUw-0e-NHv" firstAttribute="baseline" secondItem="Ifw-TF-9wA" secondAttribute="baseline" id="Huh-pf-g9m"/>
+                            <constraint firstItem="Ifw-TF-9wA" firstAttribute="centerX" secondItem="thP-XW-Zdv" secondAttribute="centerX" constant="-109" id="ZK8-3b-u1L"/>
                             <constraint firstItem="thP-XW-Zdv" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="hWg-me-8pW"/>
-                            <constraint firstItem="Ifw-TF-9wA" firstAttribute="top" secondItem="GB3-JL-eB9" secondAttribute="bottom" constant="17" id="nFH-Hr-W0h"/>
-                            <constraint firstItem="thP-XW-Zdv" firstAttribute="top" secondItem="Ifw-TF-9wA" secondAttribute="bottom" constant="25" id="oIR-C9-BFf"/>
-                            <constraint firstItem="GB3-JL-eB9" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="q0N-Eo-oTt"/>
-                            <constraint firstItem="GB3-JL-eB9" firstAttribute="centerX" secondItem="Ifw-TF-9wA" secondAttribute="centerX" id="wJk-Ju-yRn"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="qUw-0e-NHv" secondAttribute="trailing" constant="66" id="lfk-Pg-j98"/>
+                            <constraint firstItem="Ifw-TF-9wA" firstAttribute="top" secondItem="GB3-JL-eB9" secondAttribute="bottom" constant="7" id="nFH-Hr-W0h"/>
+                            <constraint firstItem="thP-XW-Zdv" firstAttribute="top" secondItem="Ifw-TF-9wA" secondAttribute="bottom" constant="37" id="oIR-C9-BFf"/>
+                            <constraint firstItem="GB3-JL-eB9" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" constant="-0.5" id="q0N-Eo-oTt"/>
+                            <constraint firstItem="GB3-JL-eB9" firstAttribute="centerX" secondItem="Ifw-TF-9wA" secondAttribute="centerX" constant="108.5" id="wJk-Ju-yRn"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>

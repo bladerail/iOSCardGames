@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Network
 
 class MainMenuController: UIViewController, UITableViewDataSource, UITableViewDelegate {
 
@@ -85,5 +86,74 @@ class MainMenuController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     self.navigationController?.pushViewController(vc, animated: true)
     }
+    
+    @IBAction func onSendUDPPressed(_ sender: Any) {
+        if #available(iOS 12.0, *) {
+            let messageToUDP = "Sent from ios Device \(UIDevice.current.name)"
+            
+            let connection = NWConnection(host: "18.141.197.170", port: 25680, using: .udp)
+            connection.stateUpdateHandler = {
+                (newState) in
+                switch (newState) {
+                    case .ready:
+                        print("State: Ready\n")
+                        self.sendUDP(connection: connection, messageToUDP)
+                        self.receiveUDP(connection: connection)
+                    case .setup:
+                        print("State: Setup\n")
+                    case .cancelled:
+                        print("State: Cancelled\n")
+                    case .preparing:
+                        print("State: Preparing\n")
+                    default:
+                        print("ERROR! State not defined!\n")
+                }
+            }
+            
+            connection.start(queue: .global())
+            
+            
+        } else {
+            // Fallback on earlier versions
+        }
+    }
+    
+    @available(iOS 12.0, *)
+    func sendUDP(connection: NWConnection, _ content: Data) {
+        connection.send(content: content, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
+            if (NWError == nil) {
+                Logger.d("Sent: \(content)")
+            } else {
+                Logger.e("Data NWError: \n \(NWError!)")
+            }
+        })))
+    }
+
+    @available(iOS 12.0, *)
+    func sendUDP(connection: NWConnection, _ content: String) {
+        let contentToSendUDP = content.data(using: String.Encoding.utf8)
+        connection.send(content: contentToSendUDP, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
+            if (NWError == nil) {
+                Logger.d("Sent: \(content)")
+            } else {
+                Logger.e("String NWError: \n \(NWError!)")
+            }
+        })))
+    }
+
+    @available(iOS 12.0, *)
+    func receiveUDP(connection: NWConnection) {
+        connection.receiveMessage { (data, context, isComplete, error) in
+            if (isComplete) {
+                if (data != nil) {
+                    let backToString = String(decoding: data!, as: UTF8.self)
+                    Logger.d("Received: \(backToString)")
+                } else {
+                    print("Data == nil")
+                }
+            }
+        }
+    }
+    
 }
 

@@ -88,11 +88,11 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
     
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
         do {
-            let message : NCommand = try JSONDecoder().decode(NCommand.self, from: data)
+            let message : NPacket = try JSONDecoder().decode(NPacket.self, from: data)
             Logger.d("Received from \(peerID): \(message)")
             
             switch (message.command) {
-            case .HOST:
+            case .simple(.HOST):
                 do {
                     let hashArray = try JSONSerialization.jsonObject(with: message.data.data(using: .utf8)!, options: []) as! [Int]
                     hostDeclaredHandler(hashArray: hashArray)
@@ -101,10 +101,11 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
                     Logger.e("\(error)")
                 }
                 break
-            case .CHAT:
+            case .simple(.CHAT):
                 NotificationCenter.default.post(name: .messageReceived, object: self, userInfo: ["peer": peerID, "msg": message])
                 break
             default:
+                // Pass to GameManager to handle
                 break
             }
         } catch {
@@ -143,8 +144,8 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
         for peer in session.connectedPeers {
             hashArray.append(peer.hashValue)
         }
-        Logger.d(NCommand(command: .HOST, data: hashArray.description).description)
-        sendMessage(command: .HOST, body: hashArray.description)
+        Logger.d(NPacket(command: .simple(.HOST), data: hashArray.description).description)
+        sendMessage(command: .simple(.HOST), body: hashArray.description)
         hostDeclaredHandler(hashArray: hashArray)
         NotificationCenter.default.post(name: .declareHost, object: hashArray)
         
@@ -187,11 +188,11 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
     }
     
     // Send update packet
-    func sendMessage(command: NCommand.Command, body: String) {
-        sendMessage(packet: NCommand(command: command, data: body))
+    func sendMessage(command: Command, body: String) {
+        sendMessage(packet: NPacket(command: command, data: body))
     }
     
-    func sendMessage(packet: NCommand) {
+    func sendMessage(packet: NPacket) {
         do {
             let payload = try JSONEncoder().encode(packet)
             try self.session.send(payload, toPeers: session.connectedPeers, with: .reliable)
@@ -230,10 +231,12 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
         Logger.d("playerList: \(playerList), playerIndex: \(playerIndex), serverPeerID: \(String(describing: serverPeerID))")
         
         // Create GameManager depending on server or client
-        if (self.isServer) {
-            (UIApplication.shared.delegate as! AppDelegate).gameManager = GameServer(peers: playerList, playerIndex: playerIndex)
-        } else {
-            (UIApplication.shared.delegate as! AppDelegate).gameManager = GameClient(peers: playerList, playerIndex: playerIndex)
+        DispatchQueue.main.async {
+            if (self.isServer) {
+                (UIApplication.shared.delegate as! AppDelegate).gameManager = GameServer(peers: self.playerList, playerIndex: playerIndex)
+            } else {
+                (UIApplication.shared.delegate as! AppDelegate).gameManager = GameClient(peers: self.playerList, playerIndex: playerIndex)
+            }
         }
     }
     
@@ -251,17 +254,12 @@ extension Notification.Name {
     }
 }
 
-struct NCommand : Codable, CustomStringConvertible {
-    enum Command : String, Codable {
-        case HOST
-        case CHAT
-        case SYNC
-    }
+struct NPacket : Codable, CustomStringConvertible {
 //    let senderHash: Int
     let command: Command
     let data : String
     
     var description: String {
-        return "\(command): \(data)"
+        return "\(command) Data: \(data)"
     }
 }

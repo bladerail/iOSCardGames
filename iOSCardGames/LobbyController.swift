@@ -71,7 +71,7 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
             return
         }
 
-        networkManager.sendMessage(command: .CHAT, body: txtFldMsg.text!)
+        networkManager.sendMessage(command: .simple(.HOST), body: txtFldMsg.text!)
             
         let chatObj = ChatBubble.init(withMsg: txtFldMsg.text!, by:"Self", on:NSDate())
         chatLog.append( chatObj )       // append to the array list
@@ -90,7 +90,7 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
             return true
         }
         
-        networkManager.sendMessage(command: .CHAT, body: textField.text!)
+        networkManager.sendMessage(command: .simple(.CHAT), body: textField.text!)
             //let newMsg = "<Self> " + textField.text!   // prefix with the word Self
 
         let chatObj = ChatBubble.init(withMsg: textField.text!, by:"Self", on:NSDate())
@@ -289,11 +289,10 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
     
     @objc private func messageReceivedHandler(_ notification: Notification) {
         let peerID = notification.userInfo!["peer"] as! MCPeerID
-        let message = notification.userInfo!["msg"] as! NCommand
+        let message = notification.userInfo!["msg"] as! NPacket
         Logger.d("UIHandling \(message.command) \(message.data)")
         switch (message.command) {
-        case .CHAT,
-             .HOST:
+        case .simple:
             let chatObj = ChatBubble.init(withMsg: message.data, by: peerID.displayName, on: NSDate())
             self.chatLog.append(chatObj)
             DispatchQueue.main.async {
@@ -301,7 +300,7 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
                 self.tblChat.scrollToLastCell(animated : true)
             }
             break
-        case .SYNC:
+        default:
             break
         }
         

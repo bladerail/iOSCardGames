@@ -10,6 +10,7 @@
 		4217B6A62469F28800B2124C /* GameManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4217B6A52469F28800B2124C /* GameManager.swift */; };
 		425029012469287000BA6E54 /* ChatBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 425029002469287000BA6E54 /* ChatBubble.swift */; };
 		4250290324692C6600BA6E54 /* CardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4250290224692C6600BA6E54 /* CardTests.swift */; };
+		42950EB724705DBC0005FB9C /* Command.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42950EB624705DBC0005FB9C /* Command.swift */; };
 		42952121246537ED001DCEB7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42952120246537ED001DCEB7 /* AppDelegate.swift */; };
 		42952125246537ED001DCEB7 /* MainMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42952124246537ED001DCEB7 /* MainMenuController.swift */; };
 		42952128246537ED001DCEB7 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 42952126246537ED001DCEB7 /* Main.storyboard */; };
@@ -55,6 +56,7 @@
 		4217B6A52469F28800B2124C /* GameManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameManager.swift; sourceTree = "<group>"; };
 		425029002469287000BA6E54 /* ChatBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatBubble.swift; sourceTree = "<group>"; };
 		4250290224692C6600BA6E54 /* CardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardTests.swift; sourceTree = "<group>"; };
+		42950EB624705DBC0005FB9C /* Command.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Command.swift; sourceTree = "<group>"; };
 		4295211D246537EC001DCEB7 /* iOSCardGames.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iOSCardGames.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		42952120246537ED001DCEB7 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		42952124246537ED001DCEB7 /* MainMenuController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuController.swift; sourceTree = "<group>"; };
@@ -205,6 +207,7 @@
 				4217B6A52469F28800B2124C /* GameManager.swift */,
 				4295216824655D83001DCEB7 /* NetworkManager.swift */,
 				4295216A24655DE8001DCEB7 /* NetworkingProtocol.swift */,
+				42950EB624705DBC0005FB9C /* Command.swift */,
 			);
 			path = Managers;
 			sourceTree = "<group>";
@@ -239,7 +242,6 @@
 				C1B301B36767D3FD0ECC6840 /* Pods-iOSCardGamesTests.debug.xcconfig */,
 				867527C3FDEB68F246E5731E /* Pods-iOSCardGamesTests.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -449,6 +451,7 @@
 				42AB3BE324688E04004579DE /* LogTableViewCell.swift in Sources */,
 				4217B6A62469F28800B2124C /* GameManager.swift in Sources */,
 				425029012469287000BA6E54 /* ChatBubble.swift in Sources */,
+				42950EB724705DBC0005FB9C /* Command.swift in Sources */,
 				4295216224654E36001DCEB7 /* GameServer.swift in Sources */,
 				42952125246537ED001DCEB7 /* MainMenuController.swift in Sources */,
 				4295215724653850001DCEB7 /* Card.swift in Sources */,

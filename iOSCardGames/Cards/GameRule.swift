@@ -9,6 +9,7 @@
 import Foundation
 
 protocol GameRule {
+    
     var cardOrder: [Int] { get set }
     var suitOrder: [String] { get set }
     

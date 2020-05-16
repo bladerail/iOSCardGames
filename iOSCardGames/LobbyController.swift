@@ -23,21 +23,27 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
     let gameManager = (UIApplication.shared.delegate as! AppDelegate).gameManager
     var chatLog:[ChatBubble] = []
     
+    var shouldRegisterObservers = true
+    
     override func viewWillAppear(_ animated: Bool) {
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(updatePeerConnected), name: .peerConnectionState, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(updateHost), name: .declareHost, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(messageReceivedHandler), name: .messageReceived, object: nil)
+        if (shouldRegisterObservers) {
+            NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+            
+            NotificationCenter.default.addObserver(self, selector: #selector(updatePeerConnected), name: .peerConnectionState, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(updateHost), name: .declareHost, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(messageReceivedHandler), name: .messageReceived, object: nil)
+            shouldRegisterObservers = false
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool) {
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil )
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
-        NotificationCenter.default.removeObserver(self, name: .peerConnectionState, object: nil)
-        NotificationCenter.default.removeObserver(self, name: .declareHost, object: nil)
-        NotificationCenter.default.removeObserver(self, name: .messageReceived, object: nil)
+        Logger.d(String(describing: self.navigationController?.topViewController))
+        if ((self.navigationController!.topViewController as? MCBrowserViewController) == nil) {
+            // Not going to browserVC
+            unregisterObservers()
+            shouldRegisterObservers = true
+        }
     }
     
     override func viewDidLoad() {
@@ -56,7 +62,7 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
     
     @IBAction func onInvitePressed(_ sender: Any) {
         networkManager.start()
-        self.present(networkManager.browserVC, animated: true, completion: nil)
+        self.navigationController?.pushViewController(networkManager.browserVC, animated: true)
     }
     
     // Chat Send button clicked, keep the keyboard in view so no need to resignFirstResponder
@@ -316,6 +322,14 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
             self.tblChat.scrollToLastCell(animated : true)
         }
         
+    }
+    
+    func unregisterObservers() {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil )
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .peerConnectionState, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .declareHost, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .messageReceived, object: nil)
     }
 }
 

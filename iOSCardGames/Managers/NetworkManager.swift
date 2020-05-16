@@ -126,7 +126,12 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
     
     
     func browserViewControllerDidFinish(_ browserViewController: MCBrowserViewController) {
-        browserViewController.dismiss(animated: true, completion: nil)
+        if (browserViewController.navigationController != nil) {
+            browserViewController.navigationController!.popViewController(animated: true)
+        } else {
+            browserViewController.dismiss(animated: true, completion: nil)
+        }
+        
         Logger.d("BrowserViewController Finished")
         browserViewController.browser?.stopBrowsingForPeers()
         assistant.stop()
@@ -201,7 +206,14 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
     }
     
     // Update playerList and serverPeerID to match that of the host's
+    // Host calls this in BrowserViewControllerDidFinish
+    // Clients call this when they receive session data for the host command
     func hostDeclaredHandler(hashArray: [Int]) {
+        if (serverPeerID != nil) {
+            Logger.e("There is already a registered host: \(serverPeerID!.displayName)")
+            return
+        }
+        
         var playerIndex: Int = -1
         for (idx, hash) in hashArray.enumerated() {
             for peer in session.connectedPeers {

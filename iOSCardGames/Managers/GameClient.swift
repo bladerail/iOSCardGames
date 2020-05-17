@@ -11,6 +11,25 @@ import MultipeerConnectivity
 
 class GameClient : GameManager {
     
+    var playerList: [MCPeerID]
+    var playerIndex: Int
+    var currentGameRule: GameLogic?
+    
+    
+    init(peers: [MCPeerID], playerIndex: Int) {
+        self.playerList = peers
+        self.playerIndex = playerIndex
+        currentGameRule = nil
+    }
+    
+    func packetReceivedHandler(packet: NPacket) {
+        
+    }
+    
+    func sendPacket(packet: NPacket) {
+        
+    }
+    
  
     func requestSyncStateWithServer() {
         

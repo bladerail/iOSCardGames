@@ -8,7 +8,9 @@
 
 import Foundation
 
-class BridgeGameRule : GameRule {
+class BridgeGameLogic : GameLogic {
+
+    var gameName = GameName.Bridge
     
     enum messageTypes {
         case BID

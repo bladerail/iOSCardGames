@@ -13,7 +13,7 @@ class Card {
     var isPlayed: Bool
     let strength: Int // The computed strength value of this card
     
-    public init(_ number: Int, _ suit: Int, _ rule: GameRule) {
+    public init(_ number: Int, _ suit: Int, _ rule: GameLogic) {
         self.number = number
         self.suit = suit
         self.suitStr = rule.suitOrder[suit]

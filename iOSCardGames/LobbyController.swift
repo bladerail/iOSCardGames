@@ -18,15 +18,27 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
     @IBOutlet weak var tblChat: UITableView!
     @IBOutlet weak var txtFldMsg: UITextField!
     @IBOutlet weak var btnSend: UIButton!
+    @IBOutlet weak var viewKB: UIView!
+    
+    @IBOutlet weak var viewKBBottomConstraint: NSLayoutConstraint!
     
     let networkManager = NetworkManager.shared
-    let gameManager = (UIApplication.shared.delegate as! AppDelegate).gameManager
+    let gameManager = AppDelegate.realDelegate.gameManager
+    
     var chatLog:[ChatBubble] = []
+    var kbMoved: Bool = false   // see the explanation for viewWillAppear
+    var originalKBConstraints : [NSLayoutConstraint] = [] // to store the original constraints of viewKB
+    var originalTblConstraints : [NSLayoutConstraint] = []   // for tblChat
     
     var shouldRegisterObservers = true
     
     override func viewWillAppear(_ animated: Bool) {
         if (shouldRegisterObservers) {
+            
+            // When the user taps on the chat textfield, we need to shift the tableview and textfield up to make them visible.
+            // So, we ask to be notified when the keyboard is about to be shown and about to be removed from screen. We call the selector
+            // functions to adjust the frames of the tableview and the uiview containing the textfield and Send button
+            // But, somehow multiple notifications may be sent, so need a workaround with a bool variable kbMoved, defined above
             NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil)
             
@@ -66,19 +78,27 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
     }
     
     // Chat Send button clicked, keep the keyboard in view so no need to resignFirstResponder
+    fileprivate func sendChatMessage() {
+        let msgSent = networkManager.sendMessage(command: .simple(.HOST), body: txtFldMsg.text!)
+        
+        let chatObj = ChatBubble.init(withMsg: txtFldMsg.text!, by:"Self", on:NSDate())
+        chatLog.append( chatObj )       // append to the array list
+        
+        if (!msgSent) {
+            let chatObj2 = ChatBubble.init(withMsg: "There is no session", by:"Admin", on:NSDate())
+            chatLog.append(chatObj2)
+        }
+        self.tblChat.reloadData()  // to refresh the UITableView
+        txtFldMsg.text = ""     // clear the textfield so that it's easy to type the next message
+        self.tblChat.scrollToLastCell(animated : true)
+    }
+    
     @IBAction func onSendPressed(_ sender: UIButton) {
         if txtFldMsg.text?.count == 0 {
             return
         }
 
-        networkManager.sendMessage(command: .simple(.HOST), body: txtFldMsg.text!)
-            
-        let chatObj = ChatBubble.init(withMsg: txtFldMsg.text!, by:"Self", on:NSDate())
-        chatLog.append( chatObj )       // append to the array list
-        self.tblChat.reloadData()  // to refresh the UITableView
-            
-        txtFldMsg.text = ""     // clear the textfield so that it's easy to type the next message
-        self.tblChat.scrollToLastCell(animated : true)  // Scroll to the last row of the tableview
+        sendChatMessage()  // Scroll to the last row of the tableview
     }
     
     // MARK: UITextFieldDelegate
@@ -90,17 +110,8 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
             return true
         }
         
-        networkManager.sendMessage(command: .simple(.CHAT), body: textField.text!)
-            //let newMsg = "<Self> " + textField.text!   // prefix with the word Self
-
-        let chatObj = ChatBubble.init(withMsg: textField.text!, by:"Self", on:NSDate())
-        chatLog.append( chatObj )       // append to the array list
-        self.tblChat.reloadData()  // to refresh the UITableView
+        sendChatMessage()
         
-        textField.text = ""     // clear the textfield so that it's easy to type the next message
-        textField.resignFirstResponder() // to hide the keyboard
-        self.tblChat.scrollToLastCell(animated : true)  // Scroll to the last row of the tableview
-        textField.text = ""     // clear the textfield so that it's easy to type the next message
         textField.resignFirstResponder() // to hide the keyboard
         return true
     }
@@ -253,11 +264,29 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
         }
     
     @objc func keyboardWillShow(sender: NSNotification) {
-        
+        if (!kbMoved) {
+            let info = sender.userInfo!
+            let keyboardFrame: CGRect = (info[UIResponder.keyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
+            
+            UIView.animate(withDuration: 0.1, animations: { () -> Void in
+                self.viewKBBottomConstraint.constant -= keyboardFrame.size.height
+                
+            })
+            self.tblChat.scrollToLastCell(animated : true)
+
+            kbMoved = true
+        }
     }
     
     @objc func keyboardWillHide(sender: NSNotification) {
-        
+        if (kbMoved) {
+//            let info = sender.userInfo!
+//            let keyboardFrame: CGRect = (info[UIResponder.keyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
+            UIView.animate(withDuration: 0.1, animations: { () -> Void in
+                self.viewKBBottomConstraint.constant = 0.0
+            })
+            kbMoved = false
+        }
     }
     
     @objc private func updatePeerConnected(_ notification: Notification) {

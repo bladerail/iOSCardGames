@@ -9,10 +9,10 @@
 import Foundation
 
 class Deck {
-    private var rule : GameRule
+    private var rule : GameLogic
     private var cardList = [Card]()
     
-    init(_ rule: GameRule) {
+    init(_ rule: GameLogic) {
         self.rule = rule
         for suit in 0...3 {
             for value in 1...13 {

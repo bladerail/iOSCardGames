@@ -62,7 +62,7 @@ class MainMenuController: UIViewController, UITableViewDataSource, UITableViewDe
         tblLogs.rowHeight = UITableView.automaticDimension
         tblLogs.estimatedRowHeight = 40
         
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let appDelegate = AppDelegate.realDelegate
         appDelegate.mainVC = self
         
         

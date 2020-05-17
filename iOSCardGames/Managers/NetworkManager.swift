@@ -188,16 +188,22 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
     }
     
     // Send update packet
-    func sendMessage(command: Command, body: String) {
-        sendMessage(packet: NPacket(command: command, data: body))
+    @discardableResult func sendMessage(command: Command, body: String) -> Bool {
+        return sendMessage(packet: NPacket(command: command, data: body))
     }
     
-    func sendMessage(packet: NPacket) {
+    @discardableResult func sendMessage(packet: NPacket) -> Bool {
+        if (self.session.connectedPeers.count == 0) {
+            return false
+        }
+        
         do {
             let payload = try JSONEncoder().encode(packet)
             try self.session.send(payload, toPeers: session.connectedPeers, with: .reliable)
+            return true
         } catch {
             Logger.e("Send Message: \(error)")
+            return false
         }
     }
     
@@ -231,12 +237,13 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
         Logger.d("playerList: \(playerList), playerIndex: \(playerIndex), serverPeerID: \(String(describing: serverPeerID))")
         
         // Create GameManager depending on server or client
-        DispatchQueue.main.async {
-            if (self.isServer) {
-                (UIApplication.shared.delegate as! AppDelegate).gameManager = GameServer(peers: self.playerList, playerIndex: playerIndex)
-            } else {
-                (UIApplication.shared.delegate as! AppDelegate).gameManager = GameClient(peers: self.playerList, playerIndex: playerIndex)
-            }
+        let appDelegate = AppDelegate.realDelegate
+        if (self.isServer) {
+            Logger.d("You are server")
+            appDelegate.gameManager = GameServer(peers: self.playerList, playerIndex: playerIndex)
+        } else {
+            Logger.d("You are client")
+            appDelegate.gameManager = GameClient(peers: self.playerList, playerIndex: playerIndex)
         }
     }
     

@@ -10,6 +10,24 @@ import Foundation
 import MultipeerConnectivity
 
 class GameServer: GameManager {
+    var currentGameRule: GameLogic?
+    var playerList: [MCPeerID]
+    var playerIndex: Int
+    
+    func packetReceivedHandler(packet: NPacket) {
+        
+    }
+    
+    func sendPacket(packet: NPacket) {
+        
+    }
+    
+    
+    init(peers: [MCPeerID], playerIndex: Int) {
+        self.playerList = peers
+        self.playerIndex = playerIndex
+        currentGameRule = nil
+    }
     
     func updateFullStateForClients() {
         

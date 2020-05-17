@@ -8,12 +8,17 @@
 
 import Foundation
 
-protocol GameRule {
-    
+protocol GameLogic {
+    var gameName: GameName { get set }
     var cardOrder: [Int] { get set }
     var suitOrder: [String] { get set }
     
     func computeCardStrength(_ number: Int, _ suit: Int) -> Int
     
     func messageReceivedHandler(_ notification: Notification)
+}
+
+
+enum GameName : String {
+    case Bridge = "Contract Bridge"
 }

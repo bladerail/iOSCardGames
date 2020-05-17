@@ -9,18 +9,12 @@
 import Foundation
 import MultipeerConnectivity
 
-class GameManager {
-    var playerList: [MCPeerID]
-    var playerIndex: Int
-    var currentGameRule: GameRule?
+protocol GameManager {
+    var playerList: [MCPeerID] { get set }
+    var playerIndex: Int { get set }
+    var currentGameRule: GameLogic? { get set }
     
-    init(peers: [MCPeerID], playerIndex: Int) {
-        self.playerList = peers
-        self.playerIndex = playerIndex
-        currentGameRule = nil
-    }
+    func packetReceivedHandler(packet: NPacket)
+    func sendPacket(packet: NPacket)
     
-    func messageReceivedHandler() {
-        
-    }
 }

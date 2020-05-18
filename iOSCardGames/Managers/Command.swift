@@ -14,12 +14,6 @@ enum Command {
 
 }
 
-enum SimpleCmd: String {
-    case HOST
-    case CHAT
-    case SETGAME
-}
-
 extension Command: Codable {
     
     enum CodingKeys: String, CodingKey {
@@ -36,8 +30,7 @@ extension Command: Codable {
         if let bridgeValue = try? values.decode(String.self, forKey: .bridge) {
             self = .bridge(BridgeCmd(rawValue: bridgeValue)!)
             return
-        }
-        if let simpleValue = try? values.decode(String.self, forKey: .simple) {
+        } else if let simpleValue = try? values.decode(String.self, forKey: .simple) {
             self = .simple(SimpleCmd(rawValue: simpleValue)!)
             return
         }

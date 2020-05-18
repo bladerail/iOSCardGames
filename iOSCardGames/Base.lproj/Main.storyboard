@@ -197,7 +197,7 @@
                     <navigationItem key="navigationItem" title="Lobby" id="BBG-7f-aPV">
                         <barButtonItem key="rightBarButtonItem" title="Start" id="Ijl-9q-A3Q">
                             <connections>
-                                <segue destination="kHy-8t-L65" kind="show" id="oT0-5A-PTL"/>
+                                <action selector="onBtnStartPressed:" destination="faY-5P-HDD" id="26F-tY-Zdq"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
@@ -221,14 +221,30 @@
         <!--Game View Controller-->
         <scene sceneID="Zuz-Cb-tCh">
             <objects>
-                <viewController id="kHy-8t-L65" customClass="GameViewController" customModule="iOSCardGames" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="GameViewController" id="kHy-8t-L65" customClass="GameViewController" customModule="iOSCardGames" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="DyU-2e-bdr">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="0Pc-b8-Ziq">
+                                <rect key="frame" x="170" y="63" width="34" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Start"/>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Jci-v2-W9q">
+                                <rect key="frame" x="172" y="110" width="31" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Deal"/>
+                            </button>
+                        </subviews>
                         <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                         <viewLayoutGuide key="safeArea" id="jON-3N-ozz"/>
                     </view>
                     <navigationItem key="navigationItem" id="rC8-qt-H0U"/>
+                    <connections>
+                        <outlet property="btnDeal" destination="Jci-v2-W9q" id="hhS-K5-lM4"/>
+                        <outlet property="btnStart" destination="0Pc-b8-Ziq" id="EkG-Mi-j7C"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="ic3-ZE-4yT" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>

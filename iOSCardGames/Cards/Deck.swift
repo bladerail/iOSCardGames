@@ -28,4 +28,19 @@ class Deck {
         //print("After shuffling:")
         //printDeck()
     }
+    
+    // DealCards
+    // All players will have cards in sorted order
+    public func dealCards(numPlayers: Int) -> [[Card]] {
+        var allPlayerCards: [[Card]] = []
+        for player in 0...(numPlayers - 1) {
+            var playerCards: [Card] = []
+            for round in 0...12 {
+                playerCards.append(cardList[round * 4 + player])
+            }
+            playerCards.sort(by: Card.compare)
+            allPlayerCards.append(playerCards)
+        }
+        return allPlayerCards
+    }
 }

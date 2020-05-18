@@ -29,7 +29,7 @@ open class Logger {
         let fileName = (file as NSString).lastPathComponent
         let fullStr = "[Error]: \(fileName) \(line) \(function): \(msg)"
         let shortStr = "E: \(function): \(msg)"
-        log(fullStr, shortStr)
+        log(fullStr, fullStr)
     }
     
     private static func log(_ fullStr: String, _ shortStr: String) {

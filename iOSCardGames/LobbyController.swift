@@ -26,7 +26,7 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
     let networkManager = NetworkManager.shared
     let gameManager = AppDelegate.realDelegate.gameManager
     
-    var chatLog:[ChatBubble] = []
+    var chatLog: [ChatBubble] = []
     var kbMoved: Bool = false   // see the explanation for viewWillAppear
     var pickedGame: GameName = GameName.Bridge
     
@@ -318,20 +318,25 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
     }
     
     @objc private func messageReceivedHandler(_ notification: Notification) {
-        let peerID = notification.userInfo!["peer"] as! MCPeerID
-        let message = notification.userInfo!["msg"] as! NPacket
-        Logger.d("UIHandling \(message.command) \(message.data)")
-        switch (message.command) {
-        case .simple:
-            let chatObj = ChatBubble.init(withMsg: message.data, by: peerID.displayName, on: NSDate())
-            self.chatLog.append(chatObj)
-            DispatchQueue.main.async {
-                self.tblChat.reloadData()
-                self.tblChat.scrollToLastCell(animated : true)
+        do {
+            let peerID = notification.userInfo!["peer"] as! MCPeerID
+            let message = notification.userInfo!["msg"] as! NPacket
+            let msg = try JSONDecoder().decode(String.self, from: message.data)
+            Logger.d("UIHandling \(message.command) \(message.data)")
+            switch (message.command) {
+            case .simple:
+                let chatObj = ChatBubble.init(withMsg: msg, by: peerID.displayName, on: NSDate())
+                self.chatLog.append(chatObj)
+                DispatchQueue.main.async {
+                    self.tblChat.reloadData()
+                    self.tblChat.scrollToLastCell(animated : true)
+                }
+                break
+            default:
+                break
             }
-            break
-        default:
-            break
+        } catch {
+            Logger.e("\(error)")
         }
         
     }
@@ -341,8 +346,10 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
         let chatObj : ChatBubble
         if (networkManager.isServer) {
             chatObj = ChatBubble.init(withMsg: hashArray.description, by: "Self", on: NSDate())
+            self.btnStart.isEnabled = true
         } else {
             chatObj  = ChatBubble.init(withMsg: hashArray.description, by: networkManager.serverPeerID!.displayName, on: NSDate())
+            self.btnStart.isEnabled = false
         }
         
         self.chatLog.append(chatObj)
@@ -403,6 +410,14 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
         
     }
     
+    @IBAction func onBtnStartPressed(_ sender: Any) {
+        
+        if (gameManager!.isServer) {
+            gameManager!.startGame()
+            self.navigationController?.pushViewController(gameManager!.gameViewController!, animated: true)
+        
+        }
+    }
 }
 
 extension UIFont {

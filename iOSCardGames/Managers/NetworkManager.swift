@@ -9,6 +9,14 @@
 import Foundation
 import MultipeerConnectivity
 
+
+enum SimpleCmd: String {
+    case HOST
+    case CHAT
+    case SETGAME // Set Game Logic
+    case LAUNCH // Launch Game
+}
+
 class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDelegate, MCAdvertiserAssistantDelegate {
     
     static let shared = NetworkManager.init()
@@ -93,22 +101,30 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
             Logger.d("Received from \(peerID): \(message)")
             
             switch (message.command) {
-            case .simple(.HOST):
-                do {
-                    let hashArray = try JSONSerialization.jsonObject(with: message.data.data(using: .utf8)!, options: []) as! [Int]
-                    hostDeclaredHandler(hashArray: hashArray)
-                    NotificationCenter.default.post(name: .declareHost, object: hashArray)
-                } catch {
-                    Logger.e("\(error)")
+            case .simple(let simple):
+                switch (simple) {
+                case .HOST:
+                    do {
+                        let hashArray = try JSONSerialization.jsonObject(with: message.data, options: []) as! [Int]
+                        hostDeclaredHandler(hashArray: hashArray)
+                        NotificationCenter.default.post(name: .declareHost, object: hashArray)
+                    } catch {
+                        Logger.e("\(error)")
+                    }
+                    break
+                case .CHAT:
+                    NotificationCenter.default.post(name: .messageReceived, object: self, userInfo: ["peer": peerID, "msg": message])
+                    break
+                case .SETGAME:
+                    let rawValue = try JSONDecoder().decode(String.self, from: message.data)
+                    let game = GameName(rawValue: rawValue)
+                    gameManager?.setGameLogic(gameName: game!)
+                    NotificationCenter.default.post(name: .gameChanged, object: self, userInfo: ["game": game!])
+                    break
+                case .LAUNCH:
+                    gameManager?.startGame()
+                    break
                 }
-                break
-            case .simple(.CHAT):
-                NotificationCenter.default.post(name: .messageReceived, object: self, userInfo: ["peer": peerID, "msg": message])
-                break
-            case .simple(.SETGAME):
-                let game = GameName(rawValue: message.data)
-                gameManager?.setGameLogic(gameName: game!)
-                NotificationCenter.default.post(name: .gameChanged, object: self, userInfo: ["game": game!])
                 break
             default:
                 // Pass to GameManager to handle
@@ -151,10 +167,16 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
         for peer in session.connectedPeers {
             hashArray.append(peer.hashValue)
         }
-        Logger.d(NPacket(command: .simple(.HOST), data: hashArray.description).description)
-        sendMessage(command: .simple(.HOST), body: hashArray.description)
+        do {
+        let arrayData = try JSONSerialization.data(withJSONObject: hashArray, options: [])
+        
+        Logger.d(NPacket(command: .simple(.HOST), data: arrayData).description)
+        sendMessage(command: .simple(.HOST), body: arrayData)
         hostDeclaredHandler(hashArray: hashArray)
         NotificationCenter.default.post(name: .declareHost, object: hashArray)
+        } catch {
+            Logger.e("Serialization Error \(error)")
+        }
         
     }
     
@@ -196,6 +218,10 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
     
     // Send update packet
     @discardableResult func sendMessage(command: Command, body: String) -> Bool {
+        return sendMessage(packet: NPacket(command: command, data: body.data(using: .utf8)!))
+    }
+    
+    @discardableResult func sendMessage(command: Command, body: Data) -> Bool {
         return sendMessage(packet: NPacket(command: command, data: body))
     }
     
@@ -272,9 +298,31 @@ extension Notification.Name {
 struct NPacket : Codable, CustomStringConvertible {
 //    let senderHash: Int
     let command: Command
-    let data : String
+    let data : Data
+    let playerIndex: Int? // Intended recipient. Nil means send to all
+    
+    init(command: Command, data: Data, playerIndex: Int? = nil) {
+        self.command = command
+        self.data = data
+        self.playerIndex = playerIndex
+    }
+    
+    init(command: Command, string: String, playerIndex: Int? = nil) {
+        self.command = command
+        self.data = string.data(using: .utf8)!
+        self.playerIndex = playerIndex
+    }
+    
+//    func dataToString() -> String {
+//        do {
+//            let jsonDecoded = try JSONDecoder().decode(String.self, from: self.data)
+//        } catch {
+//            Logger.e("\(error)")
+//            return "Error"
+//        }
+//    }
     
     var description: String {
-        return "\(command) Data: \(data)"
+        return "\(command) To: \(String(describing: playerIndex)) Data: \(data)"
     }
 }

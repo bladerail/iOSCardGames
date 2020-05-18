@@ -6,7 +6,7 @@
 //  Copyright © 2020 Joshua Ng. All rights reserved.
 //
 
-class Card {
+class Card : Codable, CustomStringConvertible {
     let number : Int // Number on the card itself
     let suit: Int
     let suitStr: String
@@ -28,7 +28,7 @@ class Card {
         return card1Strength < card2Strength
     }
     
-    public func description() -> String {
-        return "\(number) \(suitStr))"
+    var description: String {
+        return "\(number) \(suitStr)"
     }
 }

@@ -24,7 +24,7 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
     @IBOutlet weak var viewKBBottomConstraint: NSLayoutConstraint!
     
     let networkManager = NetworkManager.shared
-    let gameManager = AppDelegate.realDelegate.gameManager
+    let gameManager = GameManager.shared
     
     var chatLog: [ChatBubble] = []
     var kbMoved: Bool = false   // see the explanation for viewWillAppear
@@ -46,6 +46,7 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
             NotificationCenter.default.addObserver(self, selector: #selector(updateHost), name: .declareHost, object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(messageReceivedHandler), name: .messageReceived, object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(gameChangedHandler), name: .gameChanged, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(launchGameHandler), name: .launchGame, object: nil)
             shouldRegisterObservers = false
         }
     }
@@ -318,13 +319,14 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
     }
     
     @objc private func messageReceivedHandler(_ notification: Notification) {
-        do {
-            let peerID = notification.userInfo!["peer"] as! MCPeerID
-            let message = notification.userInfo!["msg"] as! NPacket
-            let msg = try JSONDecoder().decode(String.self, from: message.data)
-            Logger.d("UIHandling \(message.command) \(message.data)")
-            switch (message.command) {
-            case .simple:
+        let peerID = notification.userInfo!["peer"] as! MCPeerID
+        let message = notification.userInfo!["msg"] as! NPacket
+        let msg = String(decoding: message.data, as: UTF8.self)
+        Logger.d("UIHandling \(message.command) \(message.data)")
+        switch (message.command) {
+        case .simple(let simpleCmd):
+            switch (simpleCmd) {
+            case .CHAT:
                 let chatObj = ChatBubble.init(withMsg: msg, by: peerID.displayName, on: NSDate())
                 self.chatLog.append(chatObj)
                 DispatchQueue.main.async {
@@ -333,12 +335,12 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
                 }
                 break
             default:
+                Logger.e("Unexpected message")
                 break
             }
-        } catch {
-            Logger.e("\(error)")
+        default:
+            break
         }
-        
     }
     
     @objc func updateHost(_ notification: Notification) {
@@ -346,14 +348,18 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
         let chatObj : ChatBubble
         if (networkManager.isServer) {
             chatObj = ChatBubble.init(withMsg: hashArray.description, by: "Self", on: NSDate())
-            self.btnStart.isEnabled = true
         } else {
             chatObj  = ChatBubble.init(withMsg: hashArray.description, by: networkManager.serverPeerID!.displayName, on: NSDate())
-            self.btnStart.isEnabled = false
         }
         
         self.chatLog.append(chatObj)
         DispatchQueue.main.async {
+            
+            if (self.networkManager.isServer) {
+                self.btnStart.isEnabled = true
+            } else {
+                self.btnStart.isEnabled = false
+            }
             self.tblChat.reloadData()
             self.tblChat.scrollToLastCell(animated : true)
         }
@@ -367,6 +373,7 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
         NotificationCenter.default.removeObserver(self, name: .declareHost, object: nil)
         NotificationCenter.default.removeObserver(self, name: .messageReceived, object: nil)
         NotificationCenter.default.removeObserver(self, name: .gameChanged, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .launchGame, object: nil)
     }
     
     @IBAction func onBtnGamePicker(_ sender: Any) {
@@ -387,6 +394,7 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
             }
             btnGamePicker.titleLabel?.text = pickedGame.rawValue
             networkManager.sendMessage(command: Command.simple(.SETGAME), body: pickedGame.rawValue)
+            gameManager.setGameLogic(gameName: pickedGame)
             let chatObj = ChatBubble.init(withMsg: "Game was changed to \(pickedGame.rawValue)", by: "Admin", on: NSDate())
             self.chatLog.append(chatObj)
             DispatchQueue.main.async {
@@ -411,11 +419,15 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
     }
     
     @IBAction func onBtnStartPressed(_ sender: Any) {
-        
-        if (gameManager!.isServer) {
-            gameManager!.startGame()
-            self.navigationController?.pushViewController(gameManager!.gameViewController!, animated: true)
-        
+        if (gameManager.isServer) {
+            gameManager.startGame()
+            self.navigationController?.pushViewController(gameManager.gameViewController!, animated: true)
+        }
+    }
+    
+    @objc func launchGameHandler(_ notification: Notification) {
+        DispatchQueue.main.async {
+            self.navigationController?.pushViewController(self.gameManager.gameViewController!, animated: true)
         }
     }
 }

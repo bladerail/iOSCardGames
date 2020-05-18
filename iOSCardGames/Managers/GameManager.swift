@@ -11,16 +11,26 @@ import MultipeerConnectivity
 
 class GameManager {
     
-    var playerList: [MCPeerID]
-    var playerIndex: Int
+    static let shared = GameManager.init()
+    
+    var playerList: [MCPeerID] = []
+    var playerIndex: Int = -1
     var isServer : Bool { playerIndex == 0}
     var currentGameLogic: GameLogic?
     var gameViewController: GameViewController?
     
-    init(players: [MCPeerID], playerIndex: Int) {
+    init() {
+        
+    }
+    
+    func set(players: [MCPeerID], playerIndex: Int) {
         self.playerList = players
         self.playerIndex = playerIndex
         self.currentGameLogic = nil
+        DispatchQueue.main.async {
+            self.gameViewController = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "GameViewController") as? GameViewController
+        }
+        
     }
     
     func packetReceivedHandler(packet: NPacket) {
@@ -35,11 +45,9 @@ class GameManager {
     }
     
     func startGame() {
-        DispatchQueue.main.async {
-            self.gameViewController = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "GameViewController") as? GameViewController
-        }
         if (isServer) {
             currentGameLogic?.setupGame()
+            NetworkManager.shared.sendMessage(packet: NPacket(command: .simple(.LAUNCH), string: "Game"))
         }
     }
     

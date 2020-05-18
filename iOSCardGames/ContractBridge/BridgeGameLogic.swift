@@ -57,8 +57,13 @@ class BridgeGameLogic : GameLogic {
                 break
             case .RECEIVECARDS:
                 do {
-                    let cards = try JSONSerialization.jsonObject(with: packet.data, options: []) as! [Card]
+                    let cards = try JSONDecoder().decode([Card].self, from: packet.data)
                     playerCards[playerIndex] = cards
+                    var str = ""
+                    for card in playerCards[playerIndex] {
+                        str += card.description + ", "
+                    }
+                    
                     Logger.d("Received cards \(playerCards[playerIndex])")
                 } catch {
                     Logger.e("Error ReceiveCards")
@@ -68,8 +73,9 @@ class BridgeGameLogic : GameLogic {
                 break
             case .GAMESTAGE:
                 do {
-                    let rawValue = try JSONDecoder().decode(String.self, from: packet.data)
+                    let rawValue = String(decoding: packet.data, as: UTF8.self)
                     self.currentGameStage = GameStages.init(rawValue: rawValue)!
+                    Logger.d("Changed GameStage to \(currentGameStage)")
                 } catch {
                     Logger.e("Error setting GameStage")
                 }
@@ -89,10 +95,10 @@ class BridgeGameLogic : GameLogic {
         currentGameStage = GameStages.start
         gameManager.sendPacket(packet: NPacket(command: .bridge(.GAMESTAGE), string: GameStages.start.rawValue))
         shuffleAndDealCards()
-        Logger.d("playerCards \(playerCards)")
+        Logger.d("playerCards \(playerCards.description)")
         do {
             for playerIndex in 0...3 {
-                let jsonCards = try JSONSerialization.data(withJSONObject: playerCards[playerIndex], options: [])
+                let jsonCards = try JSONEncoder().encode(playerCards[playerIndex])
                 gameManager.sendPacket(packet: NPacket(command: .bridge(.RECEIVECARDS), data: jsonCards, playerIndex: playerIndex))
             }
         } catch {

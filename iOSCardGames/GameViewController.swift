@@ -9,7 +9,7 @@
 import UIKit
 
 class GameViewController: UIViewController {
-    var gameManager = AppDelegate.realDelegate.gameManager
+    var gameManager = GameManager.shared
     
     @IBOutlet weak var btnStart: UIButton!
     @IBOutlet weak var btnDeal: UIButton!
@@ -22,22 +22,34 @@ class GameViewController: UIViewController {
         super.viewDidLoad()
 
         var str = ""
-        for peer in gameManager!.playerList {
+        for peer in gameManager.playerList {
             str += peer.displayName + " "
         }
-        Logger.d("GameVC loaded. Game is \(String(describing: gameManager?.currentGameLogic))")
+        Logger.d("GameVC loaded. Game is \(String(describing: gameManager.currentGameLogic))")
         // Do any additional setup after loading the view.
         
-        if (gameManager!.isServer) {
-            btnStart.isEnabled = true
-            btnDeal.isEnabled = true
-        } else {
-            btnStart.isEnabled = false
-            btnDeal.isEnabled = false
+        DispatchQueue.main.async {
+            if (self.gameManager.isServer) {
+                self.btnStart.isEnabled = true
+                self.btnDeal.isEnabled = true
+            } else {
+                self.btnStart.isEnabled = false
+                self.btnDeal.isEnabled = false
+            }
+        }
+        
+    }
+    
+    @IBAction func onStartPressed(_ sender: Any) {
+        gameManager.sendPacket(packet: NPacket(command: .bridge(.GAMESTAGE), string: BridgeGameLogic.GameStages.start.rawValue))
+    }
+    
+    @IBAction func onDealPressed(_ sender: Any) {
+        if (gameManager.isServer) {
+            gameManager.currentGameLogic?.setupGame()
         }
     }
     
-
     /*
     // MARK: - Navigation
 

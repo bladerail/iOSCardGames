@@ -28,5 +28,5 @@ enum GameName : String {
     case Solitaire
     case Blackjack
     case Poker
-    case Bridge = "Contract Bridge"
+    case Bridge
 }

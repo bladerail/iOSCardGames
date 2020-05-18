@@ -230,11 +230,17 @@
                                 <rect key="frame" x="170" y="63" width="34" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Start"/>
+                                <connections>
+                                    <action selector="onStartPressed:" destination="kHy-8t-L65" eventType="touchUpInside" id="pDo-46-jeL"/>
+                                </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Jci-v2-W9q">
                                 <rect key="frame" x="172" y="110" width="31" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Deal"/>
+                                <connections>
+                                    <action selector="onDealPressed:" destination="kHy-8t-L65" eventType="touchUpInside" id="iEX-qv-gln"/>
+                                </connections>
                             </button>
                         </subviews>
                         <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>

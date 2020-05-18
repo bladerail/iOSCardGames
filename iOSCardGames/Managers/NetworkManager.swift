@@ -42,7 +42,7 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
         return serverPeerID == localPeerID
     }
     
-    var gameManager = AppDelegate.realDelegate.gameManager
+    var gameManager = GameManager.shared
     
     override init() {
         if let data = UserDefaults.standard.data(forKey: "peerID"), let id = NSKeyedUnarchiver.unarchiveObject(with: data) as? MCPeerID {
@@ -116,19 +116,20 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
                     NotificationCenter.default.post(name: .messageReceived, object: self, userInfo: ["peer": peerID, "msg": message])
                     break
                 case .SETGAME:
-                    let rawValue = try JSONDecoder().decode(String.self, from: message.data)
+                    let rawValue = String(decoding: message.data, as: UTF8.self)
                     let game = GameName(rawValue: rawValue)
-                    gameManager?.setGameLogic(gameName: game!)
+                    gameManager.setGameLogic(gameName: game!)
                     NotificationCenter.default.post(name: .gameChanged, object: self, userInfo: ["game": game!])
                     break
                 case .LAUNCH:
-                    gameManager?.startGame()
+                    NotificationCenter.default.post(name: .launchGame, object: self)
+                    gameManager.startGame()
                     break
                 }
                 break
             default:
                 // Pass to GameManager to handle
-                gameManager?.packetReceivedHandler(packet: message)
+                gameManager.packetReceivedHandler(packet: message)
                 break
             }
         } catch {
@@ -275,7 +276,7 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
         } else {
             Logger.d("You are client")
         }
-        gameManager = GameManager(players: self.playerList, playerIndex: playerIndex)
+        gameManager.set(players: self.playerList, playerIndex: playerIndex)
     }
     
 }
@@ -292,6 +293,9 @@ extension Notification.Name {
     }
     static var gameChanged: Notification.Name {
         return .init(rawValue: "NetworkManager.gameChanged")
+    }
+    static var launchGame: Notification.Name {
+        return .init(rawValue: "NetworkManager.launchGame")
     }
 }
 

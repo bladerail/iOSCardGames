@@ -9,14 +9,12 @@
 import Foundation
 
 class Deck {
-    private var rule : GameLogic
     private var cardList = [Card]()
     
-    init(_ rule: GameLogic) {
-        self.rule = rule
+    init(_ suitOrder: [String], _ computeCardStrength: (Int, Int) -> Int) {
         for suit in 0...3 {
             for value in 1...13 {
-                cardList.append(Card(value, suit, rule))
+                cardList.append(Card(value, suit, suitOrder, computeCardStrength))
             }
         }
     }

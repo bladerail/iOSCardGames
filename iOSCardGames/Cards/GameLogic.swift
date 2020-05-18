@@ -15,10 +15,14 @@ protocol GameLogic {
     
     func computeCardStrength(_ number: Int, _ suit: Int) -> Int
     
-    func messageReceivedHandler(_ notification: Notification)
+    // Message passed on by GameManager
+    func messageReceivedHandler(_ packet : NPacket)
 }
 
 
 enum GameName : String {
+    case Solitaire
+    case Blackjack
+    case Poker
     case Bridge = "Contract Bridge"
 }

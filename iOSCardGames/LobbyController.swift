@@ -19,6 +19,7 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
     @IBOutlet weak var txtFldMsg: UITextField!
     @IBOutlet weak var btnSend: UIButton!
     @IBOutlet weak var viewKB: UIView!
+    @IBOutlet weak var btnGamePicker: UIButton!
     
     @IBOutlet weak var viewKBBottomConstraint: NSLayoutConstraint!
     
@@ -27,8 +28,7 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
     
     var chatLog:[ChatBubble] = []
     var kbMoved: Bool = false   // see the explanation for viewWillAppear
-    var originalKBConstraints : [NSLayoutConstraint] = [] // to store the original constraints of viewKB
-    var originalTblConstraints : [NSLayoutConstraint] = []   // for tblChat
+    var pickedGame: GameName = GameName.Bridge
     
     var shouldRegisterObservers = true
     
@@ -45,6 +45,7 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
             NotificationCenter.default.addObserver(self, selector: #selector(updatePeerConnected), name: .peerConnectionState, object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(updateHost), name: .declareHost, object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(messageReceivedHandler), name: .messageReceived, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(gameChangedHandler), name: .gameChanged, object: nil)
             shouldRegisterObservers = false
         }
     }
@@ -79,7 +80,7 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
     
     // Chat Send button clicked, keep the keyboard in view so no need to resignFirstResponder
     fileprivate func sendChatMessage() {
-        let msgSent = networkManager.sendMessage(command: .simple(.HOST), body: txtFldMsg.text!)
+        let msgSent = networkManager.sendMessage(command: .simple(.CHAT), body: txtFldMsg.text!)
         
         let chatObj = ChatBubble.init(withMsg: txtFldMsg.text!, by:"Self", on:NSDate())
         chatLog.append( chatObj )       // append to the array list
@@ -358,7 +359,50 @@ class LobbyController: UIViewController, UITableViewDataSource, UITableViewDeleg
         NotificationCenter.default.removeObserver(self, name: .peerConnectionState, object: nil)
         NotificationCenter.default.removeObserver(self, name: .declareHost, object: nil)
         NotificationCenter.default.removeObserver(self, name: .messageReceived, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .gameChanged, object: nil)
     }
+    
+    @IBAction func onBtnGamePicker(_ sender: Any) {
+        if (networkManager.isServer) {
+            switch (pickedGame) {
+            case .Bridge:
+                pickedGame = .Blackjack
+                break
+            case .Blackjack:
+                pickedGame = .Poker
+                break
+            case .Poker:
+                pickedGame = .Solitaire
+                break
+            case .Solitaire:
+                pickedGame = .Bridge
+                break
+            }
+            btnGamePicker.titleLabel?.text = pickedGame.rawValue
+            networkManager.sendMessage(command: Command.simple(.SETGAME), body: pickedGame.rawValue)
+            let chatObj = ChatBubble.init(withMsg: "Game was changed to \(pickedGame.rawValue)", by: "Admin", on: NSDate())
+            self.chatLog.append(chatObj)
+            DispatchQueue.main.async {
+                self.tblChat.reloadData()
+                self.tblChat.scrollToLastCell(animated : true)
+            }
+        }
+    }
+    
+    @objc func gameChangedHandler(_ notification: Notification) {
+        let game = notification.userInfo!["game"] as! GameName
+        pickedGame = game
+        
+        let chatObj = ChatBubble.init(withMsg: "Game was changed to \(game.rawValue)", by: "Admin", on: NSDate())
+        self.chatLog.append(chatObj)
+        DispatchQueue.main.async {
+            self.btnGamePicker.titleLabel?.text = self.pickedGame.rawValue
+            self.tblChat.reloadData()
+            self.tblChat.scrollToLastCell(animated : true)
+        }
+        
+    }
+    
 }
 
 extension UIFont {

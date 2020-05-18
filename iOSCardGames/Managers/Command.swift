@@ -14,15 +14,10 @@ enum Command {
 
 }
 
-enum BridgeCmd: String {
-    case BID
-    case PLAY
-    case DEAL
-}
-
 enum SimpleCmd: String {
     case HOST
     case CHAT
+    case SETGAME
 }
 
 extension Command: Codable {

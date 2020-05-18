@@ -14,7 +14,6 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
     static let shared = NetworkManager.init()
     
     let serviceType = "iOSCardGames"
-    
     let localPeerID : MCPeerID
     var browserVC : MCBrowserViewController!
     var assistant : MCAdvertiserAssistant!
@@ -34,6 +33,8 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
     var isServer : Bool {
         return serverPeerID == localPeerID
     }
+    
+    var gameManager = AppDelegate.realDelegate.gameManager
     
     override init() {
         if let data = UserDefaults.standard.data(forKey: "peerID"), let id = NSKeyedUnarchiver.unarchiveObject(with: data) as? MCPeerID {
@@ -104,8 +105,14 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
             case .simple(.CHAT):
                 NotificationCenter.default.post(name: .messageReceived, object: self, userInfo: ["peer": peerID, "msg": message])
                 break
+            case .simple(.SETGAME):
+                let game = GameName(rawValue: message.data)
+                gameManager?.setGameLogic(gameName: game!)
+                NotificationCenter.default.post(name: .gameChanged, object: self, userInfo: ["game": game!])
+                break
             default:
                 // Pass to GameManager to handle
+                gameManager?.packetReceivedHandler(packet: message)
                 break
             }
         } catch {
@@ -237,14 +244,12 @@ class NetworkManager : NSObject, MCSessionDelegate, MCBrowserViewControllerDeleg
         Logger.d("playerList: \(playerList), playerIndex: \(playerIndex), serverPeerID: \(String(describing: serverPeerID))")
         
         // Create GameManager depending on server or client
-        let appDelegate = AppDelegate.realDelegate
         if (self.isServer) {
             Logger.d("You are server")
-            appDelegate.gameManager = GameServer(peers: self.playerList, playerIndex: playerIndex)
         } else {
             Logger.d("You are client")
-            appDelegate.gameManager = GameClient(peers: self.playerList, playerIndex: playerIndex)
         }
+        gameManager = GameManager(players: self.playerList, playerIndex: playerIndex)
     }
     
 }
@@ -258,6 +263,9 @@ extension Notification.Name {
     }
     static var messageReceived : Notification.Name {
         return .init(rawValue: "NetworkManager.receivedMessage")
+    }
+    static var gameChanged: Notification.Name {
+        return .init(rawValue: "NetworkManager.gameChanged")
     }
 }
 

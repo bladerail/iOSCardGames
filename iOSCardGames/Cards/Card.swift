@@ -13,12 +13,12 @@ class Card {
     var isPlayed: Bool
     let strength: Int // The computed strength value of this card
     
-    public init(_ number: Int, _ suit: Int, _ rule: GameLogic) {
+    public init(_ number: Int, _ suit: Int, _ suitOrder: [String], _ computeCardStrength: (Int, Int) -> Int) {
         self.number = number
         self.suit = suit
-        self.suitStr = rule.suitOrder[suit]
+        self.suitStr = suitOrder[suit]
         self.isPlayed = false
-        self.strength = rule.computeCardStrength(number, suit)
+        self.strength = computeCardStrength(number, suit)
     }
     
     // Returns true if card1 is weaker than card2

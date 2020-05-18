@@ -122,7 +122,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="oTy-qe-Ngf">
-                                <rect key="frame" x="318" y="73" width="37" height="30"/>
+                                <rect key="frame" x="318" y="64" width="37" height="30"/>
                                 <state key="normal" title="Invite"/>
                                 <connections>
                                     <action selector="onInvitePressed:" destination="faY-5P-HDD" eventType="touchUpInside" id="FjD-1z-NpF"/>
@@ -162,20 +162,30 @@
                                     <constraint firstAttribute="trailing" secondItem="HMk-k9-nTl" secondAttribute="trailing" id="wfO-Of-Rgy"/>
                                 </constraints>
                             </view>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QFr-1b-Bdh">
+                                <rect key="frame" x="314" y="110" width="41" height="30"/>
+                                <state key="normal" title="Game"/>
+                                <connections>
+                                    <action selector="onBtnGamePicker:" destination="faY-5P-HDD" eventType="touchUpInside" id="G2n-Ey-tpY"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                         <constraints>
                             <constraint firstItem="fLZ-6n-ZcX" firstAttribute="leading" secondItem="Lgj-BX-tGu" secondAttribute="leading" constant="16" id="5nu-Nv-USy"/>
                             <constraint firstItem="vpz-ph-NR5" firstAttribute="top" secondItem="Lgj-BX-tGu" secondAttribute="top" constant="34" id="C2w-1n-J2S"/>
                             <constraint firstItem="fLZ-6n-ZcX" firstAttribute="top" secondItem="vpz-ph-NR5" secondAttribute="bottom" constant="8" id="CFP-K0-35F"/>
-                            <constraint firstItem="oTy-qe-Ngf" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Lgj-BX-tGu" secondAttribute="leading" constant="20" symbolic="YES" id="FkW-MT-vxt"/>
+                            <constraint firstItem="oTy-qe-Ngf" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Lgj-BX-tGu" secondAttribute="leading" symbolic="YES" id="FkW-MT-vxt"/>
+                            <constraint firstItem="Lgj-BX-tGu" firstAttribute="trailing" secondItem="QFr-1b-Bdh" secondAttribute="trailing" constant="20" id="Icp-Zb-xsj"/>
                             <constraint firstItem="vpz-ph-NR5" firstAttribute="leading" secondItem="Lgj-BX-tGu" secondAttribute="leading" constant="16" id="J3A-kM-nbT"/>
                             <constraint firstItem="2ds-Sc-MWo" firstAttribute="top" secondItem="fLZ-6n-ZcX" secondAttribute="bottom" constant="8" id="J93-se-2Ea"/>
                             <constraint firstItem="2ds-Sc-MWo" firstAttribute="trailing" secondItem="Lgj-BX-tGu" secondAttribute="trailing" id="JQh-Vt-O4g"/>
-                            <constraint firstItem="oTy-qe-Ngf" firstAttribute="top" secondItem="Lgj-BX-tGu" secondAttribute="top" constant="29" id="K4x-kd-CaO"/>
+                            <constraint firstItem="oTy-qe-Ngf" firstAttribute="top" secondItem="Lgj-BX-tGu" secondAttribute="top" constant="20" id="K4x-kd-CaO"/>
+                            <constraint firstItem="QFr-1b-Bdh" firstAttribute="top" secondItem="oTy-qe-Ngf" secondAttribute="bottom" constant="16" id="KFd-LI-R3l"/>
                             <constraint firstItem="ZnJ-1C-8Kh" firstAttribute="bottom" secondItem="Lgj-BX-tGu" secondAttribute="bottom" id="OZr-oL-9Ec"/>
-                            <constraint firstItem="Lgj-BX-tGu" firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="vpz-ph-NR5" secondAttribute="trailing" constant="20" symbolic="YES" id="Rl5-GM-FyV"/>
+                            <constraint firstItem="Lgj-BX-tGu" firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="vpz-ph-NR5" secondAttribute="trailing" symbolic="YES" id="Rl5-GM-FyV"/>
                             <constraint firstItem="Lgj-BX-tGu" firstAttribute="trailing" secondItem="fLZ-6n-ZcX" secondAttribute="trailing" constant="16" id="Ycd-85-i0z"/>
+                            <constraint firstItem="QFr-1b-Bdh" firstAttribute="leading" secondItem="Lgj-BX-tGu" secondAttribute="leading" constant="314" id="cKr-4d-yoR"/>
                             <constraint firstItem="ZnJ-1C-8Kh" firstAttribute="top" secondItem="2ds-Sc-MWo" secondAttribute="bottom" id="fDu-sL-AT1"/>
                             <constraint firstItem="2ds-Sc-MWo" firstAttribute="leading" secondItem="Lgj-BX-tGu" secondAttribute="leading" id="jr7-Nx-Na8"/>
                             <constraint firstItem="Lgj-BX-tGu" firstAttribute="trailing" secondItem="oTy-qe-Ngf" secondAttribute="trailing" constant="20" id="mu9-Bj-Ibj"/>
@@ -192,6 +202,7 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="btnGamePicker" destination="QFr-1b-Bdh" id="LY3-aK-1f3"/>
                         <outlet property="btnInvite" destination="oTy-qe-Ngf" id="uf9-hK-5bb"/>
                         <outlet property="btnSend" destination="HMk-k9-nTl" id="JDm-V8-gE5"/>
                         <outlet property="btnStart" destination="Ijl-9q-A3Q" id="s5y-Rx-HBt"/>

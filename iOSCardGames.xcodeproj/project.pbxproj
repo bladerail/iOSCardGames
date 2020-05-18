@@ -76,7 +76,7 @@
 		4295215424653845001DCEB7 /* Deck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deck.swift; sourceTree = "<group>"; };
 		4295215624653850001DCEB7 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
 		4295215A24653DB1001DCEB7 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
-		4295215C246547A2001DCEB7 /* GameLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogic.swift; sourceTree = "<group>"; };
+		4295215C246547A2001DCEB7 /* GameLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GameLogic.swift; path = ../Cards/GameLogic.swift; sourceTree = "<group>"; };
 		4295215E24654857001DCEB7 /* BridgeGameLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeGameLogic.swift; sourceTree = "<group>"; };
 		429521662465526A001DCEB7 /* LobbyController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LobbyController.swift; sourceTree = "<group>"; };
 		4295216824655D83001DCEB7 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
@@ -191,7 +191,6 @@
 			children = (
 				4295215424653845001DCEB7 /* Deck.swift */,
 				4295215624653850001DCEB7 /* Card.swift */,
-				4295215C246547A2001DCEB7 /* GameLogic.swift */,
 			);
 			path = Cards;
 			sourceTree = "<group>";
@@ -209,6 +208,7 @@
 		4295216024654E21001DCEB7 /* Managers */ = {
 			isa = PBXGroup;
 			children = (
+				4295215C246547A2001DCEB7 /* GameLogic.swift */,
 				4217B6A52469F28800B2124C /* GameManager.swift */,
 				4295216824655D83001DCEB7 /* NetworkManager.swift */,
 				4295216A24655DE8001DCEB7 /* NetworkingProtocol.swift */,
